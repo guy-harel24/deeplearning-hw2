@@ -83,7 +83,17 @@ class Trainer(abc.ABC):
             #  - Use the train/test_epoch methods.
             #  - Save losses and accuracies in the lists above.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            train_result = self.train_epoch(dl_train, verbose=verbose, **kw)
+            
+            test_result = self.test_epoch(dl_test, verbose=verbose, **kw)
+            
+            train_loss.append(torch.tensor(train_result.losses).mean().item())
+            train_acc.append(train_result.accuracy)
+            
+            test_loss.append(torch.tensor(test_result.losses).mean().item())
+            test_acc.append(test_result.accuracy)
+            
+            actual_num_epochs += 1
             # ========================
 
             # TODO:
@@ -94,11 +104,19 @@ class Trainer(abc.ABC):
             #    the checkpoints argument.
             if best_acc is None or test_result.accuracy > best_acc:
                 # ====== YOUR CODE: ======
-                raise NotImplementedError()
+                best_acc = test_result.accuracy
+                epochs_without_improvement = 0
+                
+                if checkpoints is not None:
+                    self.save_checkpoint(checkpoints)
                 # ========================
             else:
                 # ====== YOUR CODE: ======
-                raise NotImplementedError()
+                epochs_without_improvement += 1
+                
+                if early_stopping is not None and epochs_without_improvement >= early_stopping:
+                    self._print(f"Early stopping after {epochs_without_improvement} epochs without improvement.", verbose)
+                    break
                 # ========================
 
         return FitResult(actual_num_epochs, train_loss, train_acc, test_loss, test_acc)
@@ -257,7 +275,20 @@ class ClassifierTrainer(Trainer):
         #  - Update parameters
         #  - Classify and calculate number of correct predictions
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # 1. Forward pass
+        y_pred = self.model(X)
+        loss = self.loss_fn(y_pred, y)
+
+        # 2. Backward pass & Optimization
+        self.optimizer.zero_grad()  # Clear previous gradients
+        loss.backward()             # Compute gradients
+        self.optimizer.step()       # Update weights
+
+        # 3. Metrics
+        batch_loss = loss.item()
+        # Get the class index with the highest log-probability
+        pred_classes = torch.argmax(y_pred, dim=1)
+        num_correct = torch.sum(pred_classes == y).item()
         # ========================
 
         return BatchResult(batch_loss, num_correct)
@@ -277,7 +308,14 @@ class ClassifierTrainer(Trainer):
             #  - Forward pass
             #  - Calculate number of correct predictions
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # 1. Forward pass
+            y_pred = self.model(X)
+            loss = self.loss_fn(y_pred, y)
+
+            # 2. Metrics
+            batch_loss = loss.item()
+            pred_classes = torch.argmax(y_pred, dim=1)
+            num_correct = torch.sum(pred_classes == y).item()
             # ========================
 
         return BatchResult(batch_loss, num_correct)

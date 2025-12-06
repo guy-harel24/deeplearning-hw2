@@ -128,9 +128,8 @@ class BinaryClassifier(Classifier):
         #  greater or equal to the threshold.
         #  Output should be a (N,) integer tensor.
         # ====== YOUR CODE: ======
-        pos_class_proba = y_proba[:, self.positive_class]
-        pred_bool = pos_class_proba >= self.threshold
-        return pred_bool.type(torch.int)
+        positive_proba = y_proba[:, 1]
+        return (positive_proba >= self.threshold).type(torch.int)
         # ========================
 
 
@@ -179,8 +178,38 @@ def plot_decision_boundary_2d(
     #  plot a contour map.
     x1_grid, x2_grid, y_hat = None, None, None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+# 1. Determine the range for the grid based on the data
+    x1_min, x1_max = x[:, 0].min() - 1, x[:, 0].max() + 1
+    x2_min, x2_max = x[:, 1].min() - 1, x[:, 1].max() + 1
+
+    # 2. Create vectors for the grid lines
+    x1_range = torch.arange(x1_min, x1_max, dx)
+    x2_range = torch.arange(x2_min, x2_max, dx)
+
+    # 3. Create the mesh grid (x1_grid, x2_grid)
+    x1_grid, x2_grid = torch.meshgrid(x1_range, x2_range, indexing='ij')
+
+    # 4. Flatten the grids to create an input tensor for the classifier
+    # We combine them into an (N*M, 2) tensor.
+    x_flat = torch.stack((x1_grid.flatten(), x2_grid.flatten()), dim=1)
+
+    # 5. Evaluate the classifier on the grid points (with no gradient tracking)
+    # The model should be in evaluation mode for this (though not strictly necessary if BatchNorm/Dropout aren't used).
+    # We also move the model to CPU if it was on GPU for simpler plotting.
+    with torch.no_grad():
+        if next(classifier.parameters()).is_cuda:
+            classifier.cpu()
+            x_flat = x_flat.cpu()
+        
+        # Get raw logits from the model
+        outputs = classifier(x_flat)
+        
+        # Get the predicted class (the decision boundary)
+        # We need to reshape the predictions back into the original grid shape (N, M)
+        y_hat = torch.argmax(outputs, dim=1).reshape(x1_grid.shape)
+
+    # Note: If the classifier was moved to CPU, you might want to move it back
+    # if subsequent code assumes it's on a specific device.    # ========================
 
     # Plot the decision boundary as a filled contour
     ax.contourf(x1_grid.numpy(), x2_grid.numpy(), y_hat.numpy(), alpha=0.3, cmap=cmap)
@@ -211,9 +240,24 @@ def select_roc_thresh(
     #  Calculate the index of the optimal threshold as optimal_thresh_idx.
     #  Calculate the optimal threshold as optimal_thresh.
     fpr, tpr, thresh = None, None, None
-    optimal_theresh_idx, optimal_thresh = None, None
+    optimal_thresh_idx, optimal_thresh = None, None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    import numpy as np
+    
+    classifier.eval()
+    with torch.no_grad():
+        probas = classifier.predict_proba(x)
+        y_scores = probas[:, 1].numpy()
+        
+    fpr, tpr, thresh = roc_curve(y, y_scores)
+    J = tpr - fpr
+    best_idx = np.argmax(J)
+    if thresh[best_idx] > 1.0:
+        J[0] = -float('inf') # Set to negative infinity to ignore it
+        best_idx = np.argmax(J)
+        
+    optimal_thresh = thresh[best_idx]
+    optimal_thresh_idx = best_idx # Needed for the plot section below
     # ========================
 
     if plot:

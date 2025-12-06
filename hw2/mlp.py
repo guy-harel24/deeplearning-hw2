@@ -57,24 +57,21 @@ class MLP(nn.Module):
         # ====== YOUR CODE: ======
         super().__init__()
         layers = []
-        current_in_dim = in_dim
+        current_dim = in_dim
 
         for dim, nonlin in zip(dims, nonlins):
-            # Add the linear layer
-            layers.append(nn.Linear(current_in_dim, dim))
-            
-            # Add the activation
+            # Add the linear layer and then add activation. When finished, update dim
+            layers.append(nn.Linear(current_dim, dim))
             if isinstance(nonlin, str) or nonlin is None:
-                act_class = ACTIVATIONS[nonlin]
-                act_kwargs = ACTIVATION_DEFAULT_KWARGS[nonlin]
-                layers.append(act_class(**act_kwargs))
+                active_class = ACTIVATIONS[nonlin]
+                active_kwargs = ACTIVATION_DEFAULT_KWARGS[nonlin]
+                layers.append(active_class(**active_kwargs))
             else:
                 layers.append(nonlin)
-            
-            # Update input dimension for the next layer
-            current_in_dim = dim
 
-        # Wrap everything in Sequential for easy execution
+            current_dim = dim
+
+        # Wrap it all
         self.layers = nn.Sequential(*layers)
         # ========================
 
@@ -86,6 +83,5 @@ class MLP(nn.Module):
         # TODO: Implement the model's forward pass. Make sure the input and output
         #  shapes are as expected.
         # ====== YOUR CODE: ======
-        x = x.reshape(x.shape[0], -1)
-        return self.layers(x)
+        return self.layers(x.reshape(x.shape[0], -1))
         # ========================

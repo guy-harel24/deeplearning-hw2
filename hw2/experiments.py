@@ -45,7 +45,57 @@ def mlp_experiment(
     #  Note: use print_every=0, verbose=False, plot=False where relevant to prevent
     #  output from this function.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    
+    # 1. Setup Architecture
+    x0, _ = dl_train.dataset[0]
+    in_dim = x0.numel()
+    
+    dims = [width] * depth + [2]
+    nonlins = ["tanh"] * depth + ["none"] 
+    
+    mlp = MLP(in_dim, dims, nonlins)
+    model = BinaryClassifier(model=mlp)
+
+    # 2. Setup Training
+    loss_fn = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    # Ensure device is defined
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    trainer = ClassifierTrainer(model, loss_fn, optimizer, device)
+
+    # 3. Train
+    fit_result = trainer.fit(dl_train, dl_valid, num_epochs=n_epochs, print_every=0)
+    valid_acc = fit_result.test_acc[-1]
+
+    # 4. Optimal Threshold Selection
+    model.cpu()
+    # Extract tensors. NOTE: Ensure this gets the correct subset of data!
+    # If dl_valid.dataset is a Subset, use: dl_valid.dataset.dataset.tensors[idx]
+    # But assuming standard TensorDataset here:
+    x_valid, y_valid = dl_valid.dataset.tensors
+    
+    # Calculate optimal threshold
+    thresh = select_roc_thresh(model, x_valid, y_valid, plot=False)
+    model.threshold = thresh
+
+    # 5. Test Evaluation
+    if device:
+        model.to(device)
+    model.eval()
+    
+    correct = 0
+    total = 0
+    
+    with torch.no_grad():
+        for x, y in dl_test:
+            if device:
+                x, y = x.to(device), y.to(device)
+            
+            y_pred = model.classify(x)
+            correct += (y_pred == y).sum().item()
+            total += y.shape[0]
+            
+    test_acc = (correct / total) * 100.0
     # ========================
     return model, thresh, valid_acc, test_acc
 
