@@ -355,13 +355,12 @@ An equation: $e^{i\pi} -1 = 0$
 part6_q1 = r"""
 **Your answer:**
 
+**Question 1**
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+The model detected pretty poorly. It did not detect all objects correctly (and even missed the cat), and it miss-classified all of them (except one dog with low confidance). Some false classifications came with pretty high confidance levels (one dog as a cat, and one dolphin as a person.
+
+**Question 2**
+
 
 """
 

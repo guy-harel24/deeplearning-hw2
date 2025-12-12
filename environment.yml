@@ -21,6 +21,7 @@ dependencies:
   - scipy
   - swig # needed to compile box2d
   - tqdm
+  - torchviz
   - pip:
     - nbmerge
     - gym[atari,accept-rom-license,box2d]==0.21.0
