@@ -71,7 +71,6 @@ class MLP(nn.Module):
 
             current_dim = dim
 
-        # Wrap it all
         self.layers = nn.Sequential(*layers)
         # ========================
 
