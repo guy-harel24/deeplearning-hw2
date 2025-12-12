@@ -174,26 +174,22 @@ def part3_optim_hp():
 part3_q1 = r"""
 **Your answer:**
 
+**Question 1**
+1. **Optimization error**: arises from limitations of the training algorithm, which represents the gap between the hypothesis model from hypothesis class, and the best possible hypothesis to choose from it. This error is due to choosing poor optimization hyperparameters, or since the optimization algorithm did not manage to find the best hypothesis due to local minimum for example, where it got stuck at. This error can be reduced by using a better optimizer for the data.
+2. **Generalization error**: arises from difference between the performence over the training data and evaluation data. This error is a classis outcome of overfitting. This error can be reduced by adding regularization, or adding more data to the training batch.
+3. **Approximation error**: arises from limitations of the hypothesis class, where even its best hypothesis does not ensure high accuracy. This could be explained as a gap between the "true" hypothesis matching the data, to the best in the hypothesis class. This error can be reduced by enhancing the hypothesis class.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+**Question 2**
+1. **Optimization error**: the model manages to get high accuracy over the training data, which means the optimizer itself did its job, resulting in **low** optimization error.
+2. **Generalization error**: although the loss over the training data is low, the high loss over the evaluation data shows high overfitting, meaning that the egneralization error is **high**.
+3. **Approximation error**: since the accuracy over the model's training data is high, it's very likely that with additional data the hypothesis class would have been sufficient. We can conclude that the approximation error is **low**
+
 
 """
 
 part3_q2 = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
 
 """
 
