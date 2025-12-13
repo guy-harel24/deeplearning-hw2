@@ -157,7 +157,70 @@ def cnn_experiment(
     #   for you automatically.
     fit_res = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    
+    # CIFAR-10 fixed properties
+    in_size = (3, 32, 32)
+    out_classes = 10
+
+    # Build channels list from K and L
+    channels = []
+    for k in filters_per_layer:
+        channels.extend([k] * layers_per_block)
+
+    # Create model
+    model = model_cls(
+        in_size=in_size,
+        out_classes=out_classes,
+        channels=channels,
+        pool_every=pool_every,
+        hidden_dims=hidden_dims,
+        **kw,  # allows extra args like pooling_type, pooling_params, etc.
+    )
+
+    model = model.to(device)
+
+    # Loss function
+    loss_fn = torch.nn.CrossEntropyLoss()
+
+    # Optimizer (we can change it if we want)
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=lr,
+        weight_decay=reg
+    )
+
+    # Trainer
+    trainer = ClassifierTrainer(
+        model=model,
+        loss_fn=loss_fn,
+        optimizer=optimizer,
+        device=device,
+    )
+
+    # Data loaders
+    dl_train = DataLoader(
+        ds_train,
+        batch_size=bs_train,
+        shuffle=True,
+        num_workers=2,
+    )
+
+    dl_test = DataLoader(
+        ds_test,
+        batch_size=bs_test,
+        shuffle=False,
+        num_workers=2,
+    )
+
+    # Train
+    fit_res = trainer.fit(
+        dl_train,
+        dl_test,
+        num_epochs=epochs,
+        early_stopping=early_stopping,
+        checkpoints=checkpoints,
+        max_batches=batches,
+    )
     # ========================
 
     save_experiment(run_name, out_dir, cfg, fit_res)
