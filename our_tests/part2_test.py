@@ -18,6 +18,12 @@ ds_test = torchvision.datasets.CIFAR10(root=data_dir, download=True, train=False
 seed = 42
 plt.rcParams.update({'font.size': 12})
 test = unittest.TestCase()
+batch_size = 50
+max_batches = 100
+in_features = 3*32*32
+num_classes = 10
+dl_train = torch.utils.data.DataLoader(ds_train, batch_size, shuffle=False)
+dl_test = torch.utils.data.DataLoader(ds_test, batch_size//2, shuffle=False)
 
 class TestOptimizers(unittest.TestCase):
     def __init__(self, methodName='runTest'):
@@ -64,3 +70,24 @@ class TestOptimizers(unittest.TestCase):
             best_acc = res.accuracy if res.accuracy > best_acc else best_acc
             
         assert best_acc >= 98
+    
+    def test_dropout_layer(self):
+        from hw2.grad_compare import compare_layer_to_torch
+        # Check architecture of MLP with dropout layers
+        mlp_dropout = layers.MLP(in_features, num_classes, [50]*3, dropout=0.6)
+        print(mlp_dropout)
+        test.assertEqual(len(mlp_dropout.sequence), 10)
+        for b1, b2 in zip(mlp_dropout.sequence, mlp_dropout.sequence[1:]):
+            if str(b1).lower() == 'relu':
+                test.assertTrue(str(b2).startswith('Dropout'))
+        test.assertTrue(str(mlp_dropout.sequence[-1]).startswith('Linear'))
+        # Test end-to-end gradient in train and test modes.
+        print('Dropout, train mode')
+        mlp_dropout.train(True)
+        for diff in compare_layer_to_torch(mlp_dropout, torch.randn(500, in_features)):
+            test.assertLess(diff, 1e-3)
+            
+        print('Dropout, test mode')
+        mlp_dropout.train(False)
+        for diff in compare_layer_to_torch(mlp_dropout, torch.randn(500, in_features)):
+            test.assertLess(diff, 1e-3)

@@ -62,7 +62,11 @@ def part2_optim_hp():
     # TODO: Tweak the hyperparameters to get the best results you can.
     # You may want to use different learning rates for each optimizer.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    wstd = 0
+    lr_vanilla = 0.01
+    lr_momentum = 0.01
+    lr_rmsprop = 0.0001
+    reg = 0.0001
     # ========================
     return dict(
         wstd=wstd,
@@ -81,7 +85,9 @@ def part2_dropout_hp():
     # TODO: Tweak the hyperparameters to get the model to overfit without
     # dropout.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    wstd = 0.05
+    lr = 0.01
+    
     # ========================
     return dict(wstd=wstd, lr=lr)
 
@@ -102,26 +108,36 @@ An equation: $e^{i\pi} -1 = 0$
 part2_q2 = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+Yes it is possible that the cross entropy loss will decrease while the accuracy decreases as well.
+Let's look at an example where I have one sample and I was correct by giving it the highest probability out of 10 classes $p = 0.2$
+Then the value of my loss will be $L = -log(0.2) \approx 0.69$ and my accuracy will be $acc = 100\%$.
+In the next iteration I could predict a wrong class with a probablilty $p = 0.4$ but give the right class a
+probability of $p = 0.3$. In that case my loss will be $L = -log(0.3) \approx 0.52$ and my accuracy will be $acc = 0\%$.
 """
 
 part2_q3 = r"""
 **Your answer:**
 
+1. Differences: a. SGD has a stochastic (random) ingredient which GD doesn't have which improves generalization.
+b. SGD as more memory efficient, only a batch of samples is loaded to memory and not all of the samples.
+Similarities: a. They both use a uniform learn rate for all the parameters update. b. They both converge to a minima pretty slowly.
+They can fluctuate with every step.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. Yes we believe it will be helpful to incorporate momentum in GD. If I chose to use the full batch of samples instead
+of mini-batches I will still experience the problem of fluctuation and long time of convergence. As I said in the previous
+subsection, the problems are the same in that regard between GD and SGD. If we choose to use momentum and incorporate
+decaying old gradients will shorten the time of convergence and give less importance to wild-behaving parameters.
+
+3. A. No it is not mathematically equivalent. That is because we use the sum of losses instead of the mean.
+When we use GD every sample of ours contribute its part to the overall loss: $\bar{L} = \frac{1}{N} \sum_{i=1}^{N} L_i$
+There for in the first step of backpropagation for each element $x_i$ will get $dx_i = \frac{1}{N} * \frac{\partial L_i}{\partial x_i}$.
+In the other implementation we get  $\bar{L} = \sum_{i=1}^{N} L_i$ Therefore each element's downstream gradient will be $\frac{\partial L_i}{\partial x_i}$.
+B. We believe that the thing that went wrong is that all of the neurons layers computed by the model were save in a cache of some sort
+in order to enable the backward pass later. Each layer need to remember the output it was given in the forward pass before computing the gradient.
+C. We believe that we can solve it by either reverting back to SGD and let the parameters learn from each batch separately.
+Another option is to accumulate gradients with the addition of scaling the batch loss. If we have N batches we will the scale the batch loss by $\frac{1}{N}$
+before backpropagation then we accumulate the gradients in the computational graph that way we need to save always one
+gradient for each layer. we just update its value for each batch before we update the parameters.
 
 """
 

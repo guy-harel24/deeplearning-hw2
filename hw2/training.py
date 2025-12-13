@@ -364,7 +364,14 @@ class LayerTrainer(Trainer):
 
         # TODO: Evaluate the Layer model on one batch of data.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        X = X.reshape(X.shape[0], -1) # flatten images
+        y_pred = self.model(X)
+        loss = self.loss_fn.forward(y_pred, y)
+        loss = loss.item()
+        
+        # Get the class index with the highest log-probability
+        pred_classes = torch.argmax(y_pred, dim=1)
+        num_correct = torch.sum(pred_classes == y).item()
         # ========================
 
         return BatchResult(loss, num_correct)
