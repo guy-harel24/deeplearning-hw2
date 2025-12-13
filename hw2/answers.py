@@ -85,8 +85,8 @@ def part2_dropout_hp():
     # TODO: Tweak the hyperparameters to get the model to overfit without
     # dropout.
     # ====== YOUR CODE: ======
-    wstd = 0.05
-    lr = 0.01
+    wstd = 0.001
+    lr = 0.001
     
     # ========================
     return dict(wstd=wstd, lr=lr)
@@ -95,16 +95,21 @@ def part2_dropout_hp():
 part2_q1 = r"""
 **Your answer:**
 
+1. Yes we got results that we expected. We planned for an overfit when the dropout is 0 and we certainly got one.
+As we can see the model reaches 94% on the training set but works very poorly on the test set. That is a clear sign of overfitting.
+When we increase dropout we don't get the same astounding results on the training set but we do see an improvement on the test set.
+We achieved what we wanted which is improved generalization.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. If we look at the low dropout class we see amazing accuracy and loss on the train set, but pretty consistent low accuracy and high loss
+on the test set. We can assume that this occurs because the model overfitted and basically memorized the train set
+which means it didn't really learn a lot about the world. With each epoch it gets better at memorizing the train set
+but as we can see this doesn't translate to test set predictions.
+In comparison, for high dropout, we intentionally harm the model's memorization abilities by dropping a very large number
+of different neurons in each layer. This doesn't allow the model to predict well on the train set but it harms the overall learning
+abilities of the model. We can see that all of the graphs are pretty constant, our model can't learn when we switch off neurons
+in a very intense manner.
 
 """
-
 part2_q2 = r"""
 **Your answer:**
 
