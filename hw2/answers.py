@@ -357,11 +357,17 @@ part6_q1 = r"""
 
 **Question 1**
 
-The model detected pretty poorly. It did not detect all objects correctly (and even missed the cat), and it miss-classified all of them (except one dog with low confidance). Some false classifications came with pretty high confidance levels (one dog as a cat, and one dolphin as a person.
+The model's detection performance was poor. It failed to detect all objects correctly (it even missed the cat completely), and it misclassified most of them (except for one dog, which was detected with low confidence). Some false classifications appeared with relatively high confidence levels (e.g., one dog was classified as a cat, and one dolphin as a person).
 
 **Question 2**
 
+Let's break the answer to this question for each picture:
+1. **The dolphins**: The given picture represents the dolphins in a low resolution and brightness. Although the figures in it are not tiny, their size and clarity (due to the "shadow look" caused by the sunset) might impair YOLO's ability to identify them correctly. Their silhouettes could lead to the objects being misclassified as having mixed features with a person. Since YOLO classifies each grid cell separately, the water splashes might have damaged its prediction of the middle dolphin, which was identified as a surfboard (a plausible misclassification). Modifying the picture through brightness and resolution enhancement might help identify the dolphins correctly, or alternatively, switching to an R-CNN model could be considered.
+2. **The dogs and cat**: One possible reason for the model's failure to identify both dogs is their proximity and YOLO's architecture, which struggles to correctly identify objects when more than one is present in a single grid cell. The two misidentified dogs might have been misclassified because their bounding boxes included parts of the cat, or because the model failed to clearly distinguish the animals' similar features (e.g., posture or ears), which falsely enhanced the confidence score for the cat. To achieve better results, one could either remove the cat from the image or use a two-stage model like R-CNN instead of YOLO.
 
+**Question 3**
+
+Adversarial attacks like PGD pose a significant threat to object detection models such as YOLO. These attacks operate by introducing imperceptible perturbations to the image pixels, which deceive the model into misclassifying objects or failing to detect them entirely. In safety-critical applications like autonomous driving, such failures can lead to catastrophic outcomes, despite the image appearing perfectly normal to the human eye.
 """
 
 
@@ -382,25 +388,16 @@ An equation: $e^{i\pi} -1 = 0$
 part6_q3 = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1. **Sunset looking**: The model recognized the people correctly but failed to capture the car. This is likely due to the challenging illumination conditions (backlighting), which obscure the car's details and make it difficult for the model to distinguish its boundaries.
+2. **Blurry traffic**: The model identified only one car with low confidence. This failure is likely caused by motion blur, which smears the object's features and edges, preventing the model from extracting the necessary patterns for detection.
+3. **Animal line**: The model performed poorly here. Occlusion and crowding (overlapping objects within grid cells) caused misclassifications or complete detection failures for most animals. The model likely only detected the animal with the most prominent visibility, which aligns with YOLO's known limitations in dense scenes.
 
 """
 
 part6_bonus = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+We took two images and manipulated them as follows:
+1. **The dogs and cat**: Using Google's Nano Banana Pro, we removed the cat from the image, allowing YOLO to correctly classify the dogs. This confirms our hypothesis from the first question: that the overlapping cells affected the model's accuracy.
+2. **Blurry traffic**: Using Google's Nano Banana Pro, we enhanced the image resolution and completely removed the blur. This led to two key outcomes. First, significantly more cars were recognized. Second, the van initially identified as a car was correctly reclassified as a truck. This further confirms that our initial assumption was correct.
 """
