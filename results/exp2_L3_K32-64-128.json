@@ -1,6 +1,6 @@
 {
   "config": {
-    "run_name": "exp1_4",
+    "run_name": "exp2",
     "out_dir": "./results",
     "seed": 407560718,
     "device": null,
@@ -22,7 +22,7 @@
     "hidden_dims": [
       100
     ],
-    "model_type": "cnn",
+    "model_type": "your_cnn",
     "kw": {
       "pooling_params": {
         "kernel_size": 2

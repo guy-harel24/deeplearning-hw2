@@ -22,7 +22,7 @@
     "hidden_dims": [
       100
     ],
-    "model_type": "cnn",
+    "model_type": "resnet",
     "kw": {
       "pooling_params": {
         "kernel_size": 2
