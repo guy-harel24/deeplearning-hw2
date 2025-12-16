@@ -11,7 +11,7 @@ from torchvision.datasets import CIFAR10
 
 from cs236781.train_results import FitResult
 
-from .cnn import CNN, ResNet
+from .cnn import CNN, ResNet, YourCNN
 from .mlp import MLP
 from .training import ClassifierTrainer
 from .classifier import ArgMaxClassifier, BinaryClassifier, select_roc_thresh
@@ -22,6 +22,7 @@ MODEL_TYPES = {
     ###
     "cnn": CNN,
     "resnet": ResNet,
+    "your_cnn": YourCNN,
 }
 
 
@@ -147,7 +148,6 @@ def cnn_experiment(
     if model_type not in MODEL_TYPES:
         raise ValueError(f"Unknown model type: {model_type}")
     model_cls = MODEL_TYPES[model_type]
-
     # TODO: Train
     #  - Create model, loss, optimizer and trainer based on the parameters.
     #    Use the model you've implemented previously, cross entropy loss and
@@ -157,7 +157,6 @@ def cnn_experiment(
     #   for you automatically.
     fit_res = None
     # ====== YOUR CODE: ======
-    
     # CIFAR-10 fixed properties
     in_size = (3, 32, 32)
     out_classes = 10
@@ -166,6 +165,18 @@ def cnn_experiment(
     channels = []
     for k in filters_per_layer:
         channels.extend([k] * layers_per_block)
+
+    if "pooling_params" not in kw or kw["pooling_params"] is None:
+        kw["pooling_params"] = dict(kernel_size=2)
+
+    # Ensure conv_params exists
+    if "conv_params" not in kw or kw["conv_params"] is None:
+        kw["conv_params"] = dict()
+
+    # Ensure kernel_size is defined
+    if "kernel_size" not in kw["conv_params"]:
+        kw["conv_params"]["kernel_size"] = 3
+        kw["conv_params"]["padding"] = 1  # optional but typical
 
     # Create model
     model = model_cls(
@@ -176,7 +187,6 @@ def cnn_experiment(
         hidden_dims=hidden_dims,
         **kw,  # allows extra args like pooling_type, pooling_params, etc.
     )
-
     model = model.to(device)
 
     # Loss function

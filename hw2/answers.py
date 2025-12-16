@@ -318,54 +318,86 @@ Even if $M$ is very small (or even zero due to multiplications results and/or nu
 
 part5_q1 = r"""
 **Your answer:**
+Our analysis consists of a few conclusions:
+1.There is a sweet spot for depth (L) given a number of filters (K) and input size.
 
+2. Adding layers beyond L=4 hurts, not helps, probably because:
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+ a. Spatial size shrinks too fast (feature maps become very small).
+
+ b. Gradient vanishing in very deep CNNs without skip connections.
+
+ c. Dataset is relatively small, so too large a network cannot learn meaningful features.
+
+3. Increasing depth further without residual connections leads to poor results.
 
 """
 
 part5_q2 = r"""
 **Your answer:**
 
+From expermient 1.2 these are out insights:
+1. There is a sweet spot for both depth (L) and number of filters (K):
+When the network is too shallow it leads to underfitting which leads to mediocre results.
+When it's too deep it becomes unstable / feature maps vanish and the learning fails.
+However moderate depth with more filters leads to best results.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. Increasing K helps only when network is deep enough: eg. L >= 4.
+
+3. For L=2, higher K doesn’t help; network cannot leverage extra capacity.
+
+4. L=8 is too much for this architecture, regardless of K.
 
 """
 
 part5_q3 = r"""
 **Your answer:**
 
+For experiment 1.3, these are our takeaways:
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1. With sufficient filters, L=4 seems to be the best and we believe getting deeper might risk overfitting or vanishing features unless residual connections are added.
+
+2. We see similar trends to earlier experiments:
+L = 2 is too shallow and leads to underfitting. L = 3/4 is moderate depth and leads to good generalization.
+
+3. Depth L=4 with K=[64,128] is optimal for this experiment.
+
+4. Increasing filters is useful only if depth is sufficient, consistent with experiment 1.2.
 
 """
 
 part5_q4 = r"""
 **Your answer:**
 
+Our observations from Experiment 1.4:
+Experiment 1.4 used ResNet (with residual connections). Previous experiments (1.1–1.3) used a plain CNN.
+Residual connections are designed to help with vanishing gradients, so deeper networks should be easier to train than in a standard CNN.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1. K =32
 
+L=8 and L=16 did very good, almost identical performance.
+L=32 did poorly.
+
+Even with ResNet, extremely deep networks with few filters struggle.
+Residuals help, but too few channels limit the model capacity, causing underfitting or inefficient learning.
+
+2. K = [64, 128, 256]
+
+L=4 was the best while L=2 was slightly worse. L=8 was not very good.
+
+L=8 still suffers slightly, possibly because with high capacity the model overfits or learning becomes harder.
+
+Residual connections improve trainability, allowing deeper networks to achieve high accuracy (e.g., L=16 with K=32 is very good).
+
+Mote observations:
+
+1. Extremely deep networks (L=32, even with ResNet) can underperform if filter count is low.
+
+2. With few filters, moderate depth is optimal (L=8–16).
+
+3. With many filters, intermediate depth (L=4) works best.
+
+Our takeaway is that ResNet doesn’t completely remove limitations of very deep/shallow networks.
 """
 
 
