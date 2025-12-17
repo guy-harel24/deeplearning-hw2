@@ -424,3 +424,68 @@ class ResNet(CNN):
         seq = nn.Sequential(*layers)
         return seq
 
+
+class YourCNN(CNN):
+    """
+    Custom CNN with 3 improvements:
+    1. BatchNorm
+    2. Dropout
+    3. Skip connections (ResidualBlocks)
+    """
+    def __init__(
+        self,
+        in_size,
+        out_classes,
+        channels,
+        pool_every,
+        hidden_dims,
+        batchnorm=True,
+        dropout=0.2,
+        **kwargs
+    ):
+        """
+        Custom CNN with 3 improvements:
+        1. BatchNorm
+        2. Dropout
+        3. Skip connections (ResidualBlocks)
+        """
+        self.batchnorm = batchnorm
+        self.dropout = dropout
+        super().__init__(
+            in_size, out_classes, channels, pool_every, hidden_dims, **kwargs
+        )
+
+    def _make_feature_extractor(self):
+        in_channels, _, _ = self.in_size
+        layers = []
+        P = self.pool_every
+        N = len(self.channels)
+        current_in_channels = in_channels
+
+        for i in range(0, N, P):
+            # Slice channels for this block
+            chunk_channels = self.channels[i:i+P]
+            num_layers_in_block = len(chunk_channels)
+            current_out_channels = chunk_channels[-1]
+
+            # Use ResidualBlock for skip connections
+            ks = [3]*num_layers_in_block
+            block = ResidualBlock(
+                in_channels=current_in_channels,
+                channels=chunk_channels,
+                kernel_sizes=ks,
+                batchnorm=self.batchnorm,
+                dropout=self.dropout,
+                activation_type=self.activation_type,
+                activation_params=self.activation_params
+            )
+            layers.append(block)
+
+            # Pooling after P conv layers
+            if num_layers_in_block == P:
+                pooling_cls = POOLINGS[self.pooling_type]
+                layers.append(pooling_cls(**self.pooling_params))
+
+            current_in_channels = current_out_channels
+
+        return nn.Sequential(*layers)

@@ -72,7 +72,12 @@ class VanillaSGD(Optimizer):
             #  Update the gradient according to regularization and then
             #  update the parameters tensor.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+                    # L2 regularization: dp ← dp + reg * p
+            if self.reg != 0:
+                dp.add_(self.reg * p)
+
+            # Update parameter: p ← p − lr * dp
+            p.add_(-self.learn_rate * dp)
             # ========================
 
 
@@ -91,7 +96,7 @@ class MomentumSGD(Optimizer):
 
         # TODO: Add your own initializations as needed.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.velocity_cache = {}
         # ========================
 
     def step(self):
@@ -103,7 +108,14 @@ class MomentumSGD(Optimizer):
             # update the parameters tensor based on the velocity. Don't forget
             # to include the regularization term.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # L2 regularization: dp ← dp + reg * p
+            if self.reg != 0:
+                dp.add_(self.reg * p)
+
+            prev_velocity = self.velocity_cache.get(p, torch.zeros(p.shape))
+            velocity = self.momentum * prev_velocity - self.learn_rate * dp
+            p.add_(velocity)
+            self.velocity_cache[p] = velocity
             # ========================
 
 
@@ -124,7 +136,7 @@ class RMSProp(Optimizer):
 
         # TODO: Add your own initializations as needed.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.rms_cache = {}
         # ========================
 
     def step(self):
@@ -137,5 +149,8 @@ class RMSProp(Optimizer):
             # average of it's previous gradients. Use it to update the
             # parameters tensor.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            prev_rms = self.rms_cache.get(p, torch.zeros_like(p))
+            rms = self.decay * prev_rms + (1 - self.decay) * torch.square(dp)
+            p.add_(-self.learn_rate * dp / torch.sqrt(rms + self.eps))
+            self.rms_cache[p] = rms
             # ========================

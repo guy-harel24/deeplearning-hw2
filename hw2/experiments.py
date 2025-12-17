@@ -11,7 +11,7 @@ from torchvision.datasets import CIFAR10
 
 from cs236781.train_results import FitResult
 
-from .cnn import CNN, ResNet
+from .cnn import CNN, ResNet, YourCNN
 from .mlp import MLP
 from .training import ClassifierTrainer
 from .classifier import ArgMaxClassifier, BinaryClassifier, select_roc_thresh
@@ -22,6 +22,7 @@ MODEL_TYPES = {
     ###
     "cnn": CNN,
     "resnet": ResNet,
+    "your_cnn": YourCNN,
 }
 
 
@@ -147,7 +148,6 @@ def cnn_experiment(
     if model_type not in MODEL_TYPES:
         raise ValueError(f"Unknown model type: {model_type}")
     model_cls = MODEL_TYPES[model_type]
-
     # TODO: Train
     #  - Create model, loss, optimizer and trainer based on the parameters.
     #    Use the model you've implemented previously, cross entropy loss and
@@ -157,7 +157,80 @@ def cnn_experiment(
     #   for you automatically.
     fit_res = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    # CIFAR-10 fixed properties
+    in_size = (3, 32, 32)
+    out_classes = 10
+
+    # Build channels list from K and L
+    channels = []
+    for k in filters_per_layer:
+        channels.extend([k] * layers_per_block)
+
+    if "pooling_params" not in kw or kw["pooling_params"] is None:
+        kw["pooling_params"] = dict(kernel_size=2)
+
+    # Ensure conv_params exists
+    if "conv_params" not in kw or kw["conv_params"] is None:
+        kw["conv_params"] = dict()
+
+    # Ensure kernel_size is defined
+    if "kernel_size" not in kw["conv_params"]:
+        kw["conv_params"]["kernel_size"] = 3
+        kw["conv_params"]["padding"] = 1  # optional but typical
+
+    # Create model
+    model = model_cls(
+        in_size=in_size,
+        out_classes=out_classes,
+        channels=channels,
+        pool_every=pool_every,
+        hidden_dims=hidden_dims,
+        **kw,  # allows extra args like pooling_type, pooling_params, etc.
+    )
+    model = model.to(device)
+
+    # Loss function
+    loss_fn = torch.nn.CrossEntropyLoss()
+
+    # Optimizer (we can change it if we want)
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=lr,
+        weight_decay=reg
+    )
+
+    # Trainer
+    trainer = ClassifierTrainer(
+        model=model,
+        loss_fn=loss_fn,
+        optimizer=optimizer,
+        device=device,
+    )
+
+    # Data loaders
+    dl_train = DataLoader(
+        ds_train,
+        batch_size=bs_train,
+        shuffle=True,
+        num_workers=2,
+    )
+
+    dl_test = DataLoader(
+        ds_test,
+        batch_size=bs_test,
+        shuffle=False,
+        num_workers=2,
+    )
+
+    # Train
+    fit_res = trainer.fit(
+        dl_train,
+        dl_test,
+        num_epochs=epochs,
+        early_stopping=early_stopping,
+        checkpoints=checkpoints,
+        max_batches=batches,
+    )
     # ========================
 
     save_experiment(run_name, out_dir, cfg, fit_res)

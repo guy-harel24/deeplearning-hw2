@@ -43,7 +43,9 @@ def part2_overfit_hp():
     wstd, lr, reg = 0, 0, 0
     # TODO: Tweak the hyperparameters until you overfit the small dataset.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    wstd = 0
+    lr = 0.02
+    reg = 0.1
     # ========================
     return dict(wstd=wstd, lr=lr, reg=reg)
 
@@ -60,7 +62,11 @@ def part2_optim_hp():
     # TODO: Tweak the hyperparameters to get the best results you can.
     # You may want to use different learning rates for each optimizer.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    wstd = 0
+    lr_vanilla = 0.01
+    lr_momentum = 0.01
+    lr_rmsprop = 0.0001
+    reg = 0.0001
     # ========================
     return dict(
         wstd=wstd,
@@ -79,7 +85,9 @@ def part2_dropout_hp():
     # TODO: Tweak the hyperparameters to get the model to overfit without
     # dropout.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    wstd = 0.001
+    lr = 0.001
+    
     # ========================
     return dict(wstd=wstd, lr=lr)
 
@@ -87,39 +95,54 @@ def part2_dropout_hp():
 part2_q1 = r"""
 **Your answer:**
 
+1. Yes we got results that we expected. We planned for an overfit when the dropout is 0 and we certainly got one.
+As we can see the model reaches 94% on the training set but works very poorly on the test set. That is a clear sign of overfitting.
+When we increase dropout we don't get the same astounding results on the training set but we do see an improvement on the test set.
+We achieved what we wanted which is improved generalization.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. If we look at the low dropout class we see amazing accuracy and loss on the train set, but pretty consistent low accuracy and high loss
+on the test set. We can assume that this occurs because the model overfitted and basically memorized the train set
+which means it didn't really learn a lot about the world. With each epoch it gets better at memorizing the train set
+but as we can see this doesn't translate to test set predictions.
+In comparison, for high dropout, we intentionally harm the model's memorization abilities by dropping a very large number
+of different neurons in each layer. This doesn't allow the model to predict well on the train set but it harms the overall learning
+abilities of the model. We can see that all of the graphs are pretty constant, our model can't learn when we switch off neurons
+in a very intense manner.
 
 """
-
 part2_q2 = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+Yes it is possible that the cross entropy loss will decrease while the accuracy decreases as well.
+Let's look at an example where I have one sample and I was correct by giving it the highest probability out of 10 classes $p = 0.2$
+Then the value of my loss will be $L = -log(0.2) \approx 0.69$ and my accuracy will be $acc = 100\%$.
+In the next iteration I could predict a wrong class with a probablilty $p = 0.4$ but give the right class a
+probability of $p = 0.3$. In that case my loss will be $L = -log(0.3) \approx 0.52$ and my accuracy will be $acc = 0\%$.
 """
 
 part2_q3 = r"""
 **Your answer:**
 
+1. Differences: a. SGD has a stochastic (random) ingredient which GD doesn't have which improves generalization.
+b. SGD as more memory efficient, only a batch of samples is loaded to memory and not all of the samples.
+Similarities: a. They both use a uniform learn rate for all the parameters update. b. They both converge to a minima pretty slowly.
+They can fluctuate with every step.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. Yes we believe it will be helpful to incorporate momentum in GD. If I chose to use the full batch of samples instead
+of mini-batches I will still experience the problem of fluctuation and long time of convergence. As I said in the previous
+subsection, the problems are the same in that regard between GD and SGD. If we choose to use momentum and incorporate
+decaying old gradients will shorten the time of convergence and give less importance to wild-behaving parameters.
+
+3. A. No it is not mathematically equivalent. That is because we use the sum of losses instead of the mean.
+When we use GD every sample of ours contribute its part to the overall loss: $\bar{L} = \frac{1}{N} \sum_{i=1}^{N} L_i$
+There for in the first step of backpropagation for each element $x_i$ will get $dx_i = \frac{1}{N} * \frac{\partial L_i}{\partial x_i}$.
+In the other implementation we get  $\bar{L} = \sum_{i=1}^{N} L_i$ Therefore each element's downstream gradient will be $\frac{\partial L_i}{\partial x_i}$.
+B. We believe that the thing that went wrong is that all of the neurons layers computed by the model were save in a cache of some sort
+in order to enable the backward pass later. Each layer need to remember the output it was given in the forward pass before computing the gradient.
+C. We believe that we can solve it by either reverting back to SGD and let the parameters learn from each batch separately.
+Another option is to accumulate gradients with the addition of scaling the batch loss. If we have N batches we will the scale the batch loss by $\frac{1}{N}$
+before backpropagation then we accumulate the gradients in the computational graph that way we need to save always one
+gradient for each layer. we just update its value for each batch before we update the parameters.
 
 """
 
@@ -295,54 +318,86 @@ Even if $M$ is very small (or even zero due to multiplications results and/or nu
 
 part5_q1 = r"""
 **Your answer:**
+Our analysis consists of a few conclusions:
+1.There is a sweet spot for depth (L) given a number of filters (K) and input size.
 
+2. Adding layers beyond L=4 hurts, not helps, probably because:
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+ a. Spatial size shrinks too fast (feature maps become very small).
+
+ b. Gradient vanishing in very deep CNNs without skip connections.
+
+ c. Dataset is relatively small, so too large a network cannot learn meaningful features.
+
+3. Increasing depth further without residual connections leads to poor results.
 
 """
 
 part5_q2 = r"""
 **Your answer:**
 
+From expermient 1.2 these are out insights:
+1. There is a sweet spot for both depth (L) and number of filters (K):
+When the network is too shallow it leads to underfitting which leads to mediocre results.
+When it's too deep it becomes unstable / feature maps vanish and the learning fails.
+However moderate depth with more filters leads to best results.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. Increasing K helps only when network is deep enough: eg. L >= 4.
+
+3. For L=2, higher K doesn’t help; network cannot leverage extra capacity.
+
+4. L=8 is too much for this architecture, regardless of K.
 
 """
 
 part5_q3 = r"""
 **Your answer:**
 
+For experiment 1.3, these are our takeaways:
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1. With sufficient filters, L=4 seems to be the best and we believe getting deeper might risk overfitting or vanishing features unless residual connections are added.
+
+2. We see similar trends to earlier experiments:
+L = 2 is too shallow and leads to underfitting. L = 3/4 is moderate depth and leads to good generalization.
+
+3. Depth L=4 with K=[64,128] is optimal for this experiment.
+
+4. Increasing filters is useful only if depth is sufficient, consistent with experiment 1.2.
 
 """
 
 part5_q4 = r"""
 **Your answer:**
 
+Our observations from Experiment 1.4:
+Experiment 1.4 used ResNet (with residual connections). Previous experiments (1.1–1.3) used a plain CNN.
+Residual connections are designed to help with vanishing gradients, so deeper networks should be easier to train than in a standard CNN.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1. K =32
 
+L=8 and L=16 did very good, almost identical performance.
+L=32 did poorly.
+
+Even with ResNet, extremely deep networks with few filters struggle.
+Residuals help, but too few channels limit the model capacity, causing underfitting or inefficient learning.
+
+2. K = [64, 128, 256]
+
+L=4 was the best while L=2 was slightly worse. L=8 was not very good.
+
+L=8 still suffers slightly, possibly because with high capacity the model overfits or learning becomes harder.
+
+Residual connections improve trainability, allowing deeper networks to achieve high accuracy (e.g., L=16 with K=32 is very good).
+
+Mote observations:
+
+1. Extremely deep networks (L=32, even with ResNet) can underperform if filter count is low.
+
+2. With few filters, moderate depth is optimal (L=8–16).
+
+3. With many filters, intermediate depth (L=4) works best.
+
+Our takeaway is that ResNet doesn’t completely remove limitations of very deep/shallow networks.
 """
 
 
