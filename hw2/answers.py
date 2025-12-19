@@ -213,20 +213,49 @@ part3_q1 = r"""
 part3_q2 = r"""
 **Your answer:**
 
+**Optimizing FPR at the cost of increasing FNR**: Consider a model designed to predict stock market trades, where an automated bot executes trades based on the model’s predictions. Let positive cases be profitable trades and negative cases be unprofitable trades.
+
+- A false positive occurs when the model predicts a profitable trade, but the trade results in a loss.
+- A false negative occurs when the model fails to execute a trade that would have been profitable.
+
+In a scenario where we want our bot to trade with low risk (lose as little as possible, even if good opportunities are missed), minimizing the FPR is crucial. Consequently, the model is designed to behave conservatively, prioritizing a low FPR even if this results in an increased FNR (missed good opportunities).
+
+**Optimizing FNR at the cost of increasing FPR**: Consider a rapidly spreading disease with severe health consequences, for which treatment is inexpensive and has minimal side effects. Accurate diagnosis may be time consuming or costly; however, the disease presents symptoms that are easy to identify, even if they are not entirely specific. Let positive cases correspond to a sick patient and negative cases correspond to a healthy patient.
+
+- A false negative occurs when failing to identify a sick patient.
+- A false positive occurs when a healthy patient is identified as sick.
+
+While treating healthy patient with the medicine has low consequences, not treating a sick patient might have severe outcomes. Therefore, it is preferable to minimize the FNR, even if this results in an increased FPR.
 
 """
 
 part3_q3 = r"""
 **Your answer:**
 
+**Question 1**
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+As the width increases while keeping depth constant, the model's decision boundary becomes significantly more complex and flexible:
+- Low Width: The model suffers from underfitting. The decision boundaries are very simple, failing to capture the curvature of the data. The model lacks the capacity to represent the necessary non-linear transformations.
+- High Width: The decision boundary becomes much smoother and curved, accurately fitting the data distribution.
+- Performance: Generally improves as width increases, as the network gains enough parameters to approximate the underlying function of the data. However, from a certain point, a higher width does not produce a significantly better classifier, only gaining a 1–2% improvement in accuracy. In some cases, it might even cause overfitting. This suggests that we should aim for a width that catches the general distribution in its "sweet spot" rather than just increasing it indefinitely.
 
+**Question 2**
+
+As the depth increases while keeping width constant, the model gains the ability to compose more complex non-linear functions, but this is heavily dependent on the width:
+- Low Depth: Once again, the model suffers from underfitting. It is difficult for the model, regardless of width, to capture the complexity of the non-linear distribution, resulting in coarse decision boundaries.
+- High Depth: The model's result is directly dependent on the width—even when depth increases, a small width does not effectively allow it to generate a complex classifier. However, depth is a key driver of classifier improvement when the width is large enough. In these cases, we see a flexible decision boundary that ensures high accuracy over the training data.
+- Performance: Improves as depth increases but is strictly dependent on the width of the neural network. Excessive depth does not necessarily result in better performance and even risks overfitting when the width is large enough.
+
+**Question 3**
+
+Although these configurations have a similar number of total parameters, their behavior differs due to how they represent functions:
+- Depth=1, Width=32: This network acts as a shallow-wide universal approximator that relies on mapping regions in parallel. The decision boundary is generally smoother. It is often easier to train because gradients propagate directly to the weights without vanishing through multiple layers.
+- Depth=4, Width=8: This deep-narrow network relies on hierarchical feature extraction. While deep networks are theoretically more parameter-efficient for complex tasks, the decision boundary might appear more jagged and complex than the shallow-wide counterpart.
+- Conclusion: While the deep-narrow model is theoretically more expressive per parameter, the shallow-wide model often performs better or equally well on simple datasets like this because it is easier to optimize and less prone to vanishing gradient problems or creating overly sharp, overfitted boundaries.
+
+**Question 4**
+
+In our model, selecting the threshold based on the validation set improves results on the test set. By analyzing the ROC curve on the validation set, we select a threshold that balances the FPR and FNR to maximize performance. This "tunes" the classifier's operating point to the actual difficulty of the data, which generalizes better to the test set than a static 0.5 cutoff. This allows us to generate a model with a confidence level that best fits the data. Since the validation and test data are sampled from similar distributions, we expect the advantages of a dynamic threshold to provide similar benefits across both sets.
 """
 
 # ==============
