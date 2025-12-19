@@ -276,8 +276,8 @@ def part4_optim_hp():
     # ====== YOUR CODE: ======
     loss_fn = torch.nn.CrossEntropyLoss()
     lr = 0.01
-    weight_decay = 1e-4  # L2 Regularization to prevent overfitting
-    momentum = 0.9       # Accelerates SGD in the relevant direction
+    weight_decay = 1e-4
+    momentum = 0.9
     # ========================
     return dict(lr=lr, weight_decay=weight_decay, momentum=momentum, loss_fn=loss_fn)
 
@@ -285,13 +285,36 @@ def part4_optim_hp():
 part4_q1 = r"""
 **Your answer:**
 
+**Question 1**
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+To compare the parameter counts, we assume the standard ResNet configuration for a bottleneck block taking a 256-channel input, since it reduces dimensions by a factor of 4 (to 64), processes, and expands back to 256.
+
+- Regular Block: Two $3 \times 3$ convolutions on 256 channels.
+    - Layer 1: $256 \text{ (out)}×[(256 \text{ (in)}×3×3)+1 \text{ (bias)}] = 590,080$ params.
+    - Layer 2: $256 \text{ (out)}×[(256 \text{ (in)}×3×3)+1 \text{ (bias)}] = 590,080$ params.
+    - Total: $590,080 + 590,080 = 1,180,160$ params.
+- Bottleneck Block: $1 \times 1$ projection (reduction), $3 \times 3$ convolution, $1 \times 1$ projection (expansion).
+    - Layer 1: $64 \text{ (out)}×[(256 \text{ (in)}×1×1)+1 \text{ (bias)}] = 16,448$ params.
+    - Layer 2: $64 \text{ (out)}×[(64 \text{ (in)}×3×3)+1 \text{ (bias)}] = 36,928$ params.
+    - Layer 3: $256 \text{ (out)}×[(64 \text{ (in)}×1×1)+1 \text{ (bias)}] = 16,640$ params.
+    - Total: $16,448 + 36,928 + 16,640 = 70,016$ params.
+- Conclusion: The designs differ in roughly a factor of $\frac{1,180,160}{70,016}≈17$
+
+**Question 2**
+
+Qualitative Assessment: The Bottleneck Block requires significantly fewer floating point operations than the Regular Block.
+- For convolutional layers, the number of FLOPs is roughly proportional to the number of parameters multiplied by the spatial dimensions of the feature map ($Height \times Width$).
+- Since both blocks operate on the same spatial resolution (padding preserves dimensions), the computational cost is directly related to the parameter count calculated in section 1.
+- Because the Regular Block has approximately 16.9 times more parameters ($\approx 1.18\text{M}$ vs $\approx 70\text{k}$), it performs roughly 17 times more floating point operations per forward pass. The bottleneck design effectively saves computation by performing the expensive spatial convolution on a compressed, low-dimensional feature space (64 channels instead of 256).
+
+**Question 3**
+1. Spatially (within feature maps):
+    - Regular Block (Higher Ability): This block stacks two $3 \times 3$ convolutional layers sequentially. Stacked convolutions increase the effective receptive field; two $3 \times 3$ layers cover a $5 \times 5$ region of the input. This allows the Regular Block to capture larger spatial patterns and more complex spatial dependencies compared to the Bottleneck Block.
+    - Bottleneck Block (Lower Ability): This block contains only one spatial operation (the middle $3 \times 3$ layer). The surrounding $1 \times 1$ layers do not aggregate information from neighboring pixels. Therefore, its effective receptive field is limited to $3 \times 3$, reducing its ability to combine spatial information relative to the Regular Block.
+    
+2. Across feature maps (channel-wise):
+    - Regular Block: This block mixes channel information implicitly during its spatial convolutions. Because it maintains high dimensionality (256 channels) throughout both layers, it has a high capacity for redundancy, mixing all 256 input channels into all 256 output channels twice.
+    - Bottleneck Block: This block explicitly separates channel mixing from spatial processing. The two $1 \times 1$ convolutions are dedicated entirely to combining information across feature maps (projecting dimensions down and then up). This structure forces the network to learn efficient linear combinations of features (cross-channel correlations) before and after the spatial transformation, effectively decoupling cross-channel learning from spatial learning.
 
 """
 
