@@ -11,27 +11,54 @@ math (delimited with $$).
 part1_q1 = r"""
 **Your answer:**
 
+**Section A**
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Since $W \in \mathbb{R}^{1024 \times 512}$, $X \in \mathbb{R}^{64 \times 1024}$, we conclude $XW = Y \in \mathbb{R}^{64 \times 512}$.
 
+As it was taught in class,  $\pderiv{\mat{Y}}{\mat{X}} \in \mathbb{R}^{(64 \times 1024) \times (64 \times 512)}$
+
+**Section B**
+
+Since each block is of the shape $512 \times 1024$ representing $\mat{W}$, we can conclude the following:
+1. $\forall i=j: \frac{\partial Y_i}{\partial X_j} = W$
+2. $\forall i\ne j: \frac{\partial Y_i}{\partial X_j} = 0$
+
+This gives us a block-diagonal 2D Jacobian matrix with the value of $W$.
+
+**Section C**
+
+Yes, there is a significant optimization. Since the Jacobian is block-diagonal and every diagonal block is equal to $W$, we don't need to store the whole Jacobian matrix, rather only weight matrix $W$.
+
+The new tensor shape is simply the shape of $W$: $(512, 1024)$.
+
+**Section D**
+
+We can use the Vector-Jacobian Product (VJP).
+
+- Formula: $\delta X = \delta Y \cdot W$
+- Derivation:$$\frac{\partial L}{\partial X} = \frac{\partial L}{\partial Y} \cdot \frac{\partial Y}{\partial X} \Rightarrow \delta X = \delta Y \cdot W$$
+
+**Section E**
+
+- **Shape**: The Jacobian contains the derivative of every output element ($N \times D_{out}$) with respect to every weight parameter ($D_{out} \times D_{in}$).
+    - Tensor Shape: $(N, D_{out}, D_{out}, D_{in})$.
+    - Matrix Shape: $(32,768 \times 524,288)$.
+- **Block Structure**: If we view this as a block matrix where each "block" corresponds to a single sample $i$ (splitting the rows into $N$ groups):
+    - There are $N$ blocks stacked vertically. Each block represents $\frac{\partial y_i}{\partial W}$.
+    - Block Shape: $(512 \times 524,288)$ (or $D_{out} \times (D_{out} \cdot D_{in})$).
+    - Insight: Within each of these blocks, the structure is very sparse (Kronecker product structure) because $\frac{\partial y_{ij}}{\partial W_{pq}}$ is non-zero only when $j=p$, in which case it equals $x_{iq}$.
 """
 
 part1_q2 = r"""
 **Your answer:**
 
+The answer is **yes** - the Hessian Matrix (second-order derivative) can be very helpful in some scenarios. As discussed in class, these are some of those scenarios:
+1. **General Second-Order Optimization**: The Hessian is used in second-order optimization methods. This allows for faster convergence speed, as the algorithm uses the Hessian to adapt the step size and direction by considering not just the direction of steepest descent, but also the curvature of the function.
+2. **Quadratic Objectives**: Specifically, when the objective function is quadratic, the Hessian helps determine the optimal step size, where $\eta_{opt} = \frac{1}{\lambda_{max}}$ ($\lambda_{max}$ being the largest eigenvalue of the Hessian matrix).
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+However, due to the high calculation cost of $O(n^2)$ and the high inversion cost of $O(n^3)$, we often prefer not to use the Hessian:
+1. When the number of parameters to optimize is very large, we might prefer taking more optimization steps using first-order methods rather than investing time in calculating $H$ and $H^{-1}$.
+2. When the landscape is non-convex, second-order optimization can be easily attracted to saddle points, where the gradient is zero but the Hessian has mixed positive and negative eigenvalues. This results in missing the true minima of the landscape.
 """
 
 
